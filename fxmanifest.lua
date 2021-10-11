@@ -11,7 +11,7 @@ lua54 'yes'
 
 server_scripts {
 	'oxmysql.js',
-	'wrapper.lua'
+	--'wrapper.lua'
 }
 
 provide 'mysql-async'
