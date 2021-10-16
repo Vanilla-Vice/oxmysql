@@ -1,7 +1,4 @@
 import { FormatError } from './errors';
-import * as createCompiler from 'named-placeholders';
-
-const convertNamedPlaceholders = createCompiler();
 
 const parseTypes = (field, next) => {
   //https://github.com/GHMatti/ghmattimysql/blob/37f1d2ae5c53f91782d168fe81fba80512d3c46d/packages/ghmattimysql/src/server/utility/typeCast.ts#L3
@@ -16,7 +13,7 @@ const parseTypes = (field, next) => {
         ? new Date(field.string() + ' 00:00:00').getTime()
         : new Date(field.string()).getTime();
     case 'TINY':
-      if (field.length === 1) return field.string() === '1';
+      if (field.length == 1) return field.string() === '1';
       else return next();
     case 'BIT':
       return field.buffer()[0] === 1;
@@ -37,16 +34,25 @@ const parseParameters = (query, parameters) => {
   if (queryParams === null) return [query, []];
 
   if (parameters === undefined)
-    throw new FormatError(`Placeholders was defined in query but no parameters provided!`, query);
+    throw new FormatError(`Placeholders were defined, but query received no parameters!`, query);
 
-  if (Array.isArray(parameters)) {
-    if (parameters.length !== queryParams.length)
-      throw new Error(`Undefined array parameter #${parameters.length + 1}`, query, parameters);
-  } else {
-    queryParams.forEach((_, i) => {
-      if (parameters[`${i + 1}`] === undefined)
-        throw new FormatError(`Undefined object parameter #${i + 1}`, query, parameters);
+  if (!Array.isArray(parameters)) {
+    let arr = [];
+    Object.entries(parameters).forEach((entry) => {
+      const [key, value] = entry;
+      arr[key - 1] = value;
     });
+    parameters = arr;
+  }
+  if (Array.isArray(parameters)) {
+    if (parameters.length === 0) {
+      for (let i = 0; i < queryParams.length; i++) parameters[i] = null;
+      return [query, parameters];
+    }
+    const diff = queryParams.length - parameters.length;
+    if (diff > 0) {
+      for (let i = 0; i < diff; i++) parameters[queryParams.length + i] = null;
+    }
   }
 
   return [query, parameters];
