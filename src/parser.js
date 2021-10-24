@@ -1,4 +1,7 @@
 import { FormatError } from './errors';
+import * as createCompiler from 'named-placeholders';
+
+const convertNamedPlaceholders = createCompiler();
 
 const parseTypes = (field, next) => {
   //https://github.com/GHMatti/ghmattimysql/blob/37f1d2ae5c53f91782d168fe81fba80512d3c46d/packages/ghmattimysql/src/server/utility/typeCast.ts#L3
@@ -23,11 +26,24 @@ const parseTypes = (field, next) => {
 };
 
 const parseParameters = (query, parameters) => {
-  if (query === undefined) throw new FormatError(`Undefined query passed`);
+  if (typeof query !== 'string') 
+    throw new Error(`Non-string query passed. Make sure you use "oxmysql:execute" instead of "oxmysql.execute" when calling exports.`);
 
-  if (typeof parameters === 'function') return [query, []];
+  if (!parameters || typeof parameters === 'function') return [query, []];
 
-  if (query.includes('@') || query.includes(':')) return [query, parameters];
+  if (query.includes('@') || query.includes(':')) {
+    const obj = parameters.length !== 0 ? parameters : (() => {
+      let obj = {};
+      const [_, paramNames] = convertNamedPlaceholders.parse(query);
+      if (paramNames) {
+        for (let i = 0; i < paramNames.length; i++)
+          obj[paramNames[i]] = null;
+      }
+      return obj;
+    })();
+
+    return [query, obj]
+  };
 
   const queryParams = query.match(/\?(?!\?)/g);
 
