@@ -7,7 +7,7 @@
   "author": "dunak-debug <19434539+dunak-debug@users.noreply.github.com>",
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "build": "webpack",
+    "build": "yarn && webpack",
     "watch": "webpack --watch",
     "postinstall": "patch-package"
   },
