@@ -22,8 +22,8 @@ module.exports = {
     filename: "oxmysql.js",
     path: path.resolve(__dirname, "dist"),
   },
-  optimization: {
+ /*  optimization: {
     minimize: false,
-  },
+  }, */
   target: "node",
 };
