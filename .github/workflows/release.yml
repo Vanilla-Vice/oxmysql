@@ -37,8 +37,17 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Checking npm authentication
-        run: set -e npm whoami || { echo "npm not authenticated — aborting"; exit 1; }
+      - name: Verify npm auth
+        run: |
+          if npm whoami >/dev/null 2>&1; then
+          echo "authenticated: $(npm whoami)"
+          exit 0
+          fi
+          echo "npm authentication failed"
+          npm --version
+          node --version
+          npm config get registry
+          exit 1
 
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
